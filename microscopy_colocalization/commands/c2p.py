@@ -1,0 +1,75 @@
+"""c2p: channel-to-point (image-to-CSV) distance, unchanged from
+fish_colocalization's colocalize_image_to_csv.
+"""
+import logging
+import os
+
+import pandas as pd
+
+from microscopy_colocalization import io_utils, readers
+from microscopy_colocalization.commands.p2p import read_spots
+from microscopy_colocalization.matching import get_spots_distances
+from microscopy_colocalization.threshold import THRESHOLD_METHODS, get_distance_map, get_threshold
+
+
+def add_arguments(parser):
+    parser.description = (
+        'Channel-to-point colocalization: threshold an image into a mask, then measure each '
+        'point in a CSV (e.g. RS-FISH output) by its distance to the nearest masked object.'
+    )
+    parser.add_argument('-i', '--input_path', required=True,
+                         help='Folder containing the images and CSVs (searched one level deep too).')
+    parser.add_argument('-p1', '--pattern1', required=True,
+                         help="Filename wildcard for the image files, e.g. '*.tif'.")
+    parser.add_argument('-p2', '--pattern2', required=True,
+                         help="Filename wildcard for the point CSV files, e.g. '*.csv'.")
+    parser.add_argument('-c', '--image_channel', default=-1, type=int,
+                         help='Channel index to use from each image. Required if the images are '
+                              'multi-channel; leave at the default -1 for plain 2D images with no '
+                              'channel axis.')
+    parser.add_argument('-t', '--threshold_method', default='otsu', choices=THRESHOLD_METHODS,
+                         help='Method used to separate signal from background in the image '
+                              '(default: otsu).')
+    parser.set_defaults(func=run, _parser=parser)
+
+
+def run(args):
+    result_dir = io_utils.create_result_dir(args.input_path, prefix='c2p')
+    io_utils.set_logger(result_dir)
+    io_utils.save_args_to_file(args, result_dir)
+
+    paths1, paths2 = io_utils.resolve_sources(args.input_path, args.pattern1, None, args.pattern2)
+
+    channel = None if args.image_channel == -1 else args.image_channel
+
+    rows = pd.DataFrame(columns=['image_index', 'image_name', 'distance'])
+
+    for ip, p in enumerate(paths1):
+        logging.info('Processing image %d out of %d. Name %s', ip, len(paths1), os.path.basename(p))
+
+        array, dim_order = readers.read_array(p)
+        if 'C' in dim_order and channel is None:
+            logging.warning('Skipping %s: image has a channel axis but --image_channel was not given.', p)
+            continue
+        img = readers.select_channel(array, dim_order, channel)
+
+        thr = get_threshold(img, args.threshold_method)
+        dist_map = get_distance_map(img, thr)
+
+        spots = read_spots(paths2[ip])
+        if spots is None:
+            continue
+        if spots.shape[1] == 3:
+            logging.warning('For image-csv colocalization expected csv without z column, '
+                             'but z column was found.')
+
+        distances = get_spots_distances(spots, dist_map)
+
+        data_to_add = pd.DataFrame({
+            'image_index': ip,
+            'image_name': os.path.basename(p),
+            'distance': distances,
+        })
+        rows = pd.concat([rows, data_to_add], ignore_index=True)
+
+    rows.to_csv(os.path.join(result_dir, 'distances.csv'))
