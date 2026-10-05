@@ -57,6 +57,9 @@ defaults and which arguments are required for each command.
 | `-c2c`, `--color2` | Display color for channel 2 in the output plot. Default: `yellow`. |
 | `-tm`, `--threshold_method` | `otsu`, `li`, `triangle`, or `yen`. Default: `otsu`. |
 
+Output: `stats.csv` (thresholds and M1/M2 per image), `manders_boxplot.png`, and per-image
+thresholded/overlap mask tif files.
+
 ### `p2p`: point-to-point
 
 | Flag | Meaning |
@@ -65,6 +68,9 @@ defaults and which arguments are required for each command.
 | `-p1`, `--pattern1` (required) | Filename wildcard for the first group of CSVs, e.g. `'C1-*.csv'`. |
 | `-p2`, `--pattern2` (required) | Filename wildcard for the second group of CSVs, e.g. `'C2-*.csv'`. |
 | `-d`, `--min_dist` | Maximum distance (pixels) between two points for them to count as a match. Default: `2`. |
+
+Output: `summary.csv` (point counts, match count, mean distance per image pair) and one
+`<index>.csv` per image pair listing the matched points and their distances.
 
 ### `c2p`: channel-to-point
 
@@ -75,6 +81,8 @@ defaults and which arguments are required for each command.
 | `-p2`, `--pattern2` (required) | Filename wildcard for the point CSV files, e.g. `'*.csv'`. |
 | `-c`, `--channel` | Index of the channel to use from each image (0 is the first channel). Required if the images are multi-channel; leave at the default `-1` for plain 2D images with no channel axis. |
 | `-tm`, `--threshold_method` | `otsu`, `li`, `triangle`, or `yen`. Default: `otsu`. |
+
+Output: `distances.csv`, the distance of every point to its nearest thresholded object.
 
 ## License
 
