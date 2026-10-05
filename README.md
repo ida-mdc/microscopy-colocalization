@@ -37,8 +37,8 @@ uv pip install .
 
 ```
 mcoloc c2c -p /path/to/images -ext tif -c1i 0 -c2i 1
-mcoloc p2p -i /path/to/csvs -p1 '*.csv' -p2 'C1-*.csv'
-mcoloc c2p -i /path/to/data -p1 '*.tif' -p2 '*.csv'
+mcoloc p2p -p /path/to/csvs -p1 '*.csv' -p2 'C1-*.csv'
+mcoloc c2p -p /path/to/data -p1 '*.tif' -p2 '*.csv'
 ```
 
 Run `mcoloc <command> --help` any time for the full, up-to-date argument list, including
@@ -61,7 +61,7 @@ defaults and which arguments are required for each command.
 
 | Flag | Meaning |
 |---|---|
-| `-i`, `--input_path` (required) | Folder containing the CSV files (also searched one level deep). |
+| `-p`, `--path` (required) | Folder containing the CSV files (also searched one level deep). |
 | `-p1`, `--pattern1` (required) | Filename wildcard for the first group of CSVs, e.g. `'C1-*.csv'`. |
 | `-p2`, `--pattern2` (required) | Filename wildcard for the second group of CSVs, e.g. `'C2-*.csv'`. |
 | `-d`, `--min_dist` | Maximum distance (pixels) between two points for them to count as a match. Default: `2`. |
@@ -70,11 +70,11 @@ defaults and which arguments are required for each command.
 
 | Flag | Meaning |
 |---|---|
-| `-i`, `--input_path` (required) | Folder containing the images and CSVs (also searched one level deep). |
+| `-p`, `--path` (required) | Folder containing the images and CSVs (also searched one level deep). |
 | `-p1`, `--pattern1` | Filename wildcard for the image files, e.g. `'*.tif'`. If omitted, scans for every supported image format. |
 | `-p2`, `--pattern2` (required) | Filename wildcard for the point CSV files, e.g. `'*.csv'`. |
-| `-c`, `--image_channel` | Channel index to use from each image. Required if the images are multi-channel; leave at the default `-1` for plain 2D images with no channel axis. |
-| `-t`, `--threshold_method` | `otsu`, `li`, `triangle`, or `yen`. Default: `otsu`. |
+| `-c`, `--channel` | Index of the channel to use from each image (0 is the first channel). Required if the images are multi-channel; leave at the default `-1` for plain 2D images with no channel axis. |
+| `-tm`, `--threshold_method` | `otsu`, `li`, `triangle`, or `yen`. Default: `otsu`. |
 
 ## License
 

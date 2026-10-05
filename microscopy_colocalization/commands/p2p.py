@@ -15,7 +15,7 @@ def add_arguments(parser):
         'Point-to-point colocalization: match spot coordinates between two CSVs '
         '(e.g. RS-FISH output for two channels) by nearest-neighbor distance.'
     )
-    parser.add_argument('-i', '--input_path', required=True,
+    parser.add_argument('-p', '--path', required=True,
                          help='Folder containing the CSV files (searched one level deep too).')
     parser.add_argument('-p1', '--pattern1', required=True,
                          help="Filename wildcard for the first group of CSVs, e.g. 'C1-*.csv'.")
@@ -37,11 +37,11 @@ def read_spots(csv_path):
 
 
 def run(args):
-    result_dir = io_utils.create_result_dir(args.input_path, prefix='p2p')
+    result_dir = io_utils.create_result_dir(args.path, prefix='p2p')
     io_utils.set_logger(result_dir)
     io_utils.save_args_to_file(args, result_dir)
 
-    paths1, paths2 = io_utils.resolve_sources(args.input_path, args.pattern1, None, args.pattern2)
+    paths1, paths2 = io_utils.resolve_sources(args.path, args.pattern1, None, args.pattern2)
 
     summary = pd.DataFrame(columns=['image_name', 'n_points_1', 'n_points_2', 'n_matches', 'mean_euc_dist'])
 

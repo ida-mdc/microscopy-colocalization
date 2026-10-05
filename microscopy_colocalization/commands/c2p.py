@@ -17,7 +17,7 @@ def add_arguments(parser):
         'Channel-to-point colocalization: threshold an image into a mask, then measure each '
         'point in a CSV (e.g. RS-FISH output) by its distance to the nearest masked object.'
     )
-    parser.add_argument('-i', '--input_path', required=True,
+    parser.add_argument('-p', '--path', required=True,
                          help='Folder containing the images and CSVs (searched one level deep too).')
     parser.add_argument('-p1', '--pattern1', default=None,
                          help="Filename wildcard for the image files, e.g. '*.tif'. If omitted, "
@@ -25,24 +25,24 @@ def add_arguments(parser):
                               f'({", ".join(readers.SUPPORTED_EXTENSIONS)}).')
     parser.add_argument('-p2', '--pattern2', required=True,
                          help="Filename wildcard for the point CSV files, e.g. '*.csv'.")
-    parser.add_argument('-c', '--image_channel', default=-1, type=int,
-                         help='Channel index to use from each image. Required if the images are '
-                              'multi-channel; leave at the default -1 for plain 2D images with no '
-                              'channel axis.')
-    parser.add_argument('-t', '--threshold_method', default='otsu', choices=THRESHOLD_METHODS,
+    parser.add_argument('-c', '--channel', default=-1, type=int,
+                         help='Index of the channel to use from each image, 0 means the first '
+                              'channel in the file. Required if the images are multi-channel; '
+                              'leave at the default -1 for plain 2D images with no channel axis.')
+    parser.add_argument('-tm', '--threshold_method', default='otsu', choices=THRESHOLD_METHODS,
                          help='Method used to separate signal from background in the image '
                               '(default: otsu).')
     parser.set_defaults(func=run, _parser=parser)
 
 
 def run(args):
-    result_dir = io_utils.create_result_dir(args.input_path, prefix='c2p')
+    result_dir = io_utils.create_result_dir(args.path, prefix='c2p')
     io_utils.set_logger(result_dir)
     io_utils.save_args_to_file(args, result_dir)
 
-    paths1, paths2 = io_utils.resolve_sources(args.input_path, args.pattern1, None, args.pattern2)
+    paths1, paths2 = io_utils.resolve_sources(args.path, args.pattern1, None, args.pattern2)
 
-    channel = None if args.image_channel == -1 else args.image_channel
+    channel = None if args.channel == -1 else args.channel
 
     rows = pd.DataFrame(columns=['image_index', 'image_name', 'distance'])
 
@@ -51,7 +51,7 @@ def run(args):
 
         array, dim_order = readers.read_array(p)
         if 'C' in dim_order and channel is None:
-            logging.warning('Skipping %s: image has a channel axis but --image_channel was not given.', p)
+            logging.warning('Skipping %s: image has a channel axis but --channel was not given.', p)
             continue
         img = readers.select_channel(array, dim_order, channel)
 
