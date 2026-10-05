@@ -19,8 +19,10 @@ def add_arguments(parser):
     )
     parser.add_argument('-i', '--input_path', required=True,
                          help='Folder containing the images and CSVs (searched one level deep too).')
-    parser.add_argument('-p1', '--pattern1', required=True,
-                         help="Filename wildcard for the image files, e.g. '*.tif'.")
+    parser.add_argument('-p1', '--pattern1', default=None,
+                         help="Filename wildcard for the image files, e.g. '*.tif'. If omitted, "
+                              'scans for every supported image format '
+                              f'({", ".join(readers.SUPPORTED_EXTENSIONS)}).')
     parser.add_argument('-p2', '--pattern2', required=True,
                          help="Filename wildcard for the point CSV files, e.g. '*.csv'.")
     parser.add_argument('-c', '--image_channel', default=-1, type=int,

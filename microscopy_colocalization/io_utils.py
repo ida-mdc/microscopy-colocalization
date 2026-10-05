@@ -50,13 +50,25 @@ def save_args_to_file(args, result_path, filename='arguments.txt'):
             file.write(f'{arg}: {value}\n')
 
 
+def _default_image_patterns():
+    from microscopy_colocalization.readers import SUPPORTED_EXTENSIONS
+    return [f'*.{ext}' for ext in SUPPORTED_EXTENSIONS]
+
+
+def _glob_paths(input_path, pattern):
+    """Glob one pattern, or every pattern in a list, at the top level and one level deep."""
+    patterns = pattern if isinstance(pattern, list) else [pattern]
+    paths = []
+    for p in patterns:
+        paths.extend(glob(os.path.join(input_path, p)))
+        paths.extend(glob(os.path.join(input_path, '*', p)))
+    return sorted(paths)
+
+
 def get_paths_lists(input_path, pattern1, pattern2):
     """Two glob-matched, paired file lists (today's p2p/c2p discovery mechanism)."""
-    paths1 = sorted(glob(os.path.join(input_path, pattern1)))
-    paths1.extend(sorted(glob(os.path.join(input_path, '*', pattern1))))
-
-    paths2 = sorted(glob(os.path.join(input_path, pattern2)))
-    paths2.extend(sorted(glob(os.path.join(input_path, '*', pattern2))))
+    paths1 = _glob_paths(input_path, pattern1)
+    paths2 = _glob_paths(input_path, pattern2)
 
     if len(paths1) != len(paths2):
         raise ValueError('The lengths of the two file path lists do not match.')
@@ -72,20 +84,32 @@ def resolve_sources(dir1, pattern1, dir2, pattern2):
     """Resolve two (dir, pattern) specs into paired file-path lists, covering all three
     layouts: same file/different channel (caller distinguishes via channel index, not here),
     same folder/different patterns, and different folders.
+
+    pattern1=None scans every extension readers.py supports instead of one fixed pattern
+    (c2c's -ext default behavior, mirrored here for c2p's image side).
     """
     dir2 = dir2 or dir1
+    pattern1 = pattern1 or _default_image_patterns()
     pattern2 = pattern2 or pattern1
     return get_paths_lists(dir1, pattern1, pattern2) if dir1 == dir2 else (
-        sorted(glob(os.path.join(dir1, pattern1))),
-        sorted(glob(os.path.join(dir2, pattern2))),
+        _glob_paths(dir1, pattern1),
+        _glob_paths(dir2, pattern2),
     )
 
 
-def get_all_image_paths(path, ext):
-    """Recursive directory-tree walk (today's c2c discovery mechanism)."""
-    pattern = os.path.join(path, '**', f'*.{ext}')
-    paths = glob(pattern, recursive=True)
-    return [os.path.relpath(p, path) for p in paths]
+def get_all_image_paths(path, ext=None):
+    """Recursive directory-tree walk (today's c2c discovery mechanism).
+
+    If ext is None, scans every extension readers.py supports instead of one fixed type.
+    """
+    from microscopy_colocalization.readers import SUPPORTED_EXTENSIONS
+    extensions = [ext] if ext else SUPPORTED_EXTENSIONS
+
+    paths = []
+    for e in extensions:
+        pattern = os.path.join(path, '**', f'*.{e}')
+        paths.extend(glob(pattern, recursive=True))
+    return sorted(os.path.relpath(p, path) for p in paths)
 
 
 def paths_to_df(paths):

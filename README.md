@@ -49,7 +49,7 @@ defaults and which arguments are required for each command.
 | Flag | Meaning |
 |---|---|
 | `-p`, `--path` (required) | Root folder of images, laid out as `condition/file` or `condition/run/file`. |
-| `-ext`, `--extension` (required) | Image file extension to look for, e.g. `tif`, `czi`, `ims` (no dot). |
+| `-ext`, `--extension` | Image file extension to look for, e.g. `tif`, `czi`, `ims` (no dot). If omitted, scans for every supported format. |
 | `-c1i`, `--channel1` | Index of the first channel to compare (0 is the first channel). Required unless `--all-channel-pairs` is set. |
 | `-c2i`, `--channel2` | Index of the second channel to compare. Required unless `--all-channel-pairs` is set. |
 | `--all-channel-pairs` | Run every unique pair of channels found in each image instead of one fixed pair. Cannot be combined with `--channel1`/`--channel2`. |
@@ -71,7 +71,7 @@ defaults and which arguments are required for each command.
 | Flag | Meaning |
 |---|---|
 | `-i`, `--input_path` (required) | Folder containing the images and CSVs (also searched one level deep). |
-| `-p1`, `--pattern1` (required) | Filename wildcard for the image files, e.g. `'*.tif'`. |
+| `-p1`, `--pattern1` | Filename wildcard for the image files, e.g. `'*.tif'`. If omitted, scans for every supported image format. |
 | `-p2`, `--pattern2` (required) | Filename wildcard for the point CSV files, e.g. `'*.csv'`. |
 | `-c`, `--image_channel` | Channel index to use from each image. Required if the images are multi-channel; leave at the default `-1` for plain 2D images with no channel axis. |
 | `-t`, `--threshold_method` | `otsu`, `li`, `triangle`, or `yen`. Default: `otsu`. |

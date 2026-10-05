@@ -19,6 +19,13 @@ import tifffile as tif
 _TIFF_EXTENSIONS = {'.tif', '.tiff'}
 _H5_EXTENSIONS = {'.h5', '.hdf5', '.ims'}
 
+# Extensions scanned by default when a command isn't told which one to look for: the
+# formats actually covered by the three backends + bioio plugins declared in pyproject.toml.
+SUPPORTED_EXTENSIONS = sorted(
+    {e.lstrip('.') for e in _TIFF_EXTENSIONS | _H5_EXTENSIONS} |
+    {'czi', 'nd2', 'lif', 'png', 'jpg', 'jpeg'}
+)
+
 _AXIS_ATTR_KEYS = ('dim_order', '_ARRAY_DIMENSIONS', 'axes')
 
 _IMARIS_DATASET = 'DataSet'

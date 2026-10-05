@@ -21,8 +21,10 @@ def add_arguments(parser):
     parser.add_argument('-p', '--path', required=True,
                          help='Root folder of images, laid out as condition/file or '
                               'condition/run/file (one or more conditions, each a subfolder).')
-    parser.add_argument('-ext', '--extension', required=True,
-                         help="Image file extension to look for, e.g. tif, czi, ims (no dot).")
+    parser.add_argument('-ext', '--extension', default=None,
+                         help='Image file extension to look for, e.g. tif, czi, ims (no dot). '
+                              'If omitted, scans for every supported format '
+                              f'({", ".join(readers.SUPPORTED_EXTENSIONS)}).')
     parser.add_argument('-c1i', '--channel1', type=int,
                          help='Index of the first channel to compare, 0 means the first '
                               'channel in the file. Required unless --all-channel-pairs is set.')
