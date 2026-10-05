@@ -1,4 +1,4 @@
-"""Thresholding shared by c2c and c2p.
+"""Thresholding shared by c2c and p2c.
 
 Unifies the previously-duplicated (and identical) otsu/li/triangle/yen threshold-value logic
 from ida_tools.image_operations.get_threshold and fish_colocalization's inline version.

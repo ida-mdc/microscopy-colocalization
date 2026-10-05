@@ -66,7 +66,7 @@ def _glob_paths(input_path, pattern):
 
 
 def get_paths_lists(input_path, pattern1, pattern2):
-    """Two glob-matched, paired file lists (today's p2p/c2p discovery mechanism)."""
+    """Two glob-matched, paired file lists (today's p2p/p2c discovery mechanism)."""
     paths1 = _glob_paths(input_path, pattern1)
     paths2 = _glob_paths(input_path, pattern2)
 
@@ -85,12 +85,12 @@ def resolve_sources(dir1, pattern1, dir2, pattern2):
     layouts: same file/different channel (caller distinguishes via channel index, not here),
     same folder/different patterns, and different folders.
 
-    pattern1=None scans every extension readers.py supports instead of one fixed pattern
-    (c2c's -ext default behavior, mirrored here for c2p's image side).
+    Either pattern being None scans every extension readers.py supports instead of one fixed
+    pattern (c2c's -ext default behavior, mirrored here for p2c's image side).
     """
     dir2 = dir2 or dir1
     pattern1 = pattern1 or _default_image_patterns()
-    pattern2 = pattern2 or pattern1
+    pattern2 = pattern2 or _default_image_patterns()
     return get_paths_lists(dir1, pattern1, pattern2) if dir1 == dir2 else (
         _glob_paths(dir1, pattern1),
         _glob_paths(dir2, pattern2),

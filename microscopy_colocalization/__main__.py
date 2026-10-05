@@ -1,11 +1,11 @@
 import argparse
 
-from microscopy_colocalization.commands import c2c, c2p, p2p
+from microscopy_colocalization.commands import c2c, p2c, p2p
 
 COMMANDS = {
     'c2c': (c2c, 'Channel-to-channel: Manders overlap coefficients between two image channels.'),
     'p2p': (p2p, 'Point-to-point: match spot coordinates between two CSVs by distance.'),
-    'c2p': (c2p, 'Channel-to-point: distance of each spot in a CSV to a thresholded image.'),
+    'p2c': (p2c, 'Point-to-channel: distance of each spot in a CSV to a thresholded image.'),
 }
 
 

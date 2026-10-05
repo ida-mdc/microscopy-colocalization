@@ -8,7 +8,7 @@ Run `mcoloc`with three subcommands:
   multi-channel image, or across all channel pairs with `--all-channel-pairs`.
 - `p2p` (point-to-point): matches spot coordinates between two CSVs (e.g. RS-FISH output) by
   nearest-neighbor distance.
-- `c2p` (channel-to-point): distance of each spot in a CSV to the nearest thresholded object
+- `p2c` (point-to-channel): distance of each spot in a CSV to the nearest thresholded object
   in an image.
 
 Supports tif/tiff, HDF5/.ims (including Imaris), and anything else `bioio` reads (czi, nd2, lif,
@@ -38,7 +38,7 @@ uv pip install .
 ```
 mcoloc c2c -p /path/to/images -ext tif -c1i 0 -c2i 1
 mcoloc p2p -p /path/to/csvs -p1 '*.csv' -p2 'C1-*.csv'
-mcoloc c2p -p /path/to/data -p1 '*.tif' -p2 '*.csv'
+mcoloc p2c -p /path/to/data -p1 '*.csv' -p2 '*.tif'
 ```
 
 Run `mcoloc <command> --help` any time for the full, up-to-date argument list, including
@@ -72,13 +72,13 @@ thresholded/overlap mask tif files.
 Output: `summary.csv` (point counts, match count, mean distance per image pair) and one
 `<index>.csv` per image pair listing the matched points and their distances.
 
-### `c2p`: channel-to-point
+### `p2c`: point-to-channel
 
 | Flag | Meaning |
 |---|---|
 | `-p`, `--path` (required) | Folder containing the images and CSVs (also searched one level deep). |
-| `-p1`, `--pattern1` | Filename wildcard for the image files, e.g. `'*.tif'`. If omitted, scans for every supported image format. |
-| `-p2`, `--pattern2` (required) | Filename wildcard for the point CSV files, e.g. `'*.csv'`. |
+| `-p1`, `--pattern1` (required) | Filename wildcard for the point CSV files, e.g. `'*.csv'`. |
+| `-p2`, `--pattern2` | Filename wildcard for the image files, e.g. `'*.tif'`. If omitted, scans for every supported image format. |
 | `-c`, `--channel` | Index of the channel to use from each image (0 is the first channel). Required if the images are multi-channel; leave at the default `-1` for plain 2D images with no channel axis. |
 | `-tm`, `--threshold_method` | `otsu`, `li`, `triangle`, or `yen`. Default: `otsu`. |
 

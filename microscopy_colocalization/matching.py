@@ -1,4 +1,4 @@
-"""Point-matching primitives shared by p2p and c2p, unchanged from fish_colocalization."""
+"""Point-matching primitives shared by p2p and p2c, unchanged from fish_colocalization."""
 import copy
 
 import numpy as np
