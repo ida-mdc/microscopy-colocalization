@@ -83,13 +83,6 @@ the matched points and their distances.
 
 Output: `distances.csv`, the distance of every point to its nearest thresholded object.
 
-## Testing
-
-```
-uv pip install -e ".[test]"
-pytest
-```
-
 ## License
 
 MIT

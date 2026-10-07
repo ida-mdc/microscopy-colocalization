@@ -1,6 +1,12 @@
 import logging
 
+import matplotlib
 import pytest
+
+# Headless-safe backend for tests: plotting.py otherwise picks an interactive backend (e.g.
+# Tk), which has no display to attach to on CI runners and crashes outright on some of them
+# (observed on Windows). Must be set before any other module imports matplotlib.pyplot.
+matplotlib.use('Agg')
 
 
 @pytest.fixture(autouse=True)

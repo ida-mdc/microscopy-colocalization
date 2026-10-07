@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -46,12 +47,14 @@ def test_reject_empty_patterns_accepts_nonempty(value):
     io_utils.reject_empty_patterns(_FakeParser(), p=value)  # should not raise
 
 
-@pytest.mark.parametrize('path, expected', [
-    ('condA/img1.tif', ('condA', None, 'img1')),
-    ('condA/run1/img1.tif', ('condA', 'run1', 'img1')),
+@pytest.mark.parametrize('parts, expected', [
+    (('condA', 'img1.tif'), ('condA', None, 'img1')),
+    (('condA', 'run1', 'img1.tif'), ('condA', 'run1', 'img1')),
 ])
-def test_paths_to_df_parses_condition_run_layout(path, expected):
-    df = io_utils.paths_to_df([path])
+def test_paths_to_df_parses_condition_run_layout(parts, expected):
+    # paths_to_df splits on os.sep, matching what glob/os.path.relpath actually produce in
+    # production; os.path.join here keeps the test portable across OS separators too.
+    df = io_utils.paths_to_df([os.path.join(*parts)])
     row = df.iloc[0]
     assert (row['condition'], row['run'], row['filename']) == expected
 
