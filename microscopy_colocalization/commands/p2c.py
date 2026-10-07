@@ -1,5 +1,7 @@
-"""p2c: point-to-channel (CSV-to-image) distance, unchanged from
-fish_colocalization's colocalize_image_to_csv.
+"""p2c: point-to-channel (CSV-to-image) distance, from fish_colocalization's
+colocalize_image_to_csv. Channel selection now goes through the shared multi-format reader,
+which (unlike the original) correctly uses an explicitly-given channel index for 3D images
+instead of silently skipping the image.
 """
 import logging
 import os
@@ -36,6 +38,8 @@ def add_arguments(parser):
 
 
 def run(args):
+    io_utils.reject_empty_patterns(args._parser, pattern1=args.pattern1, pattern2=args.pattern2)
+
     result_dir = io_utils.create_result_dir(args.path, prefix='p2c')
     io_utils.set_logger(result_dir)
     io_utils.save_args_to_file(args, result_dir)
@@ -44,7 +48,7 @@ def run(args):
 
     channel = None if args.channel == -1 else args.channel
 
-    rows = pd.DataFrame(columns=['image_index', 'image_name', 'distance'])
+    rows = []
 
     for ip, p in enumerate(image_paths):
         logging.info('Processing image %d out of %d. Name %s', ip, len(image_paths), os.path.basename(p))
@@ -67,11 +71,12 @@ def run(args):
 
         distances = get_spots_distances(spots, dist_map)
 
-        data_to_add = pd.DataFrame({
+        rows.append(pd.DataFrame({
             'image_index': ip,
             'image_name': os.path.basename(p),
             'distance': distances,
-        })
-        rows = pd.concat([rows, data_to_add], ignore_index=True)
+        }))
 
-    rows.to_csv(os.path.join(result_dir, 'distances.csv'))
+    result = pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(
+        columns=['image_index', 'image_name', 'distance'])
+    result.to_csv(os.path.join(result_dir, 'distances.csv'))

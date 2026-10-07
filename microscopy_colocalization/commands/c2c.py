@@ -1,5 +1,7 @@
-"""c2c: channel-to-channel colocalization (Manders' overlap coefficients), unchanged logic
-from channel_colocalization/colocalization.py, migrated onto the shared multi-format reader.
+"""c2c: channel-to-channel colocalization (Manders' overlap coefficients), from
+channel_colocalization/colocalization.py, migrated onto the shared multi-format reader.
+The only logic change from the original is using args.channel2 instead of a hardcoded
+channel index, which silently ignored the --channel2/-c2i flag.
 """
 import logging
 import os
@@ -102,7 +104,7 @@ def run(args):
         array, dim_order = readers.read_array(image_path)
 
         if args.all_channel_pairs:
-            n_channels = readers.count_channels(image_path)
+            n_channels = array.shape[dim_order.index('C')] if 'C' in dim_order else 1
             pairs = io_utils.channel_pairs(n_channels)
         else:
             pairs = [(args.channel1, args.channel2)]

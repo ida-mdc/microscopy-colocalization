@@ -13,6 +13,8 @@ from glob import glob
 
 import pandas as pd
 
+from microscopy_colocalization.readers import SUPPORTED_EXTENSIONS
+
 
 def create_result_dir(path, prefix='colocalization'):
     now = datetime.now()
@@ -39,6 +41,16 @@ def set_logger(result_path):
     logging.info('Starting')
 
 
+def reject_empty_patterns(parser, **patterns):
+    """Error out on an explicit empty-string pattern (e.g. -p1 ''), which argparse's
+    required=True does not catch and which would otherwise silently default to scanning
+    every supported image extension instead of matching nothing, as the user likely intended.
+    """
+    for name, value in patterns.items():
+        if value == '':
+            parser.error(f"--{name} cannot be an empty string.")
+
+
 def save_args_to_file(args, result_path, filename='arguments.txt'):
     """Dump user-facing CLI args. Skips internal bookkeeping (func/parser refs set via
     parser.set_defaults for dispatch/validation) that isn't meaningful to a reader.
@@ -51,7 +63,6 @@ def save_args_to_file(args, result_path, filename='arguments.txt'):
 
 
 def _default_image_patterns():
-    from microscopy_colocalization.readers import SUPPORTED_EXTENSIONS
     return [f'*.{ext}' for ext in SUPPORTED_EXTENSIONS]
 
 
@@ -88,9 +99,9 @@ def resolve_sources(dir1, pattern1, dir2, pattern2):
     Either pattern being None scans every extension readers.py supports instead of one fixed
     pattern (c2c's -ext default behavior, mirrored here for p2c's image side).
     """
-    dir2 = dir2 or dir1
-    pattern1 = pattern1 or _default_image_patterns()
-    pattern2 = pattern2 or _default_image_patterns()
+    dir2 = dir1 if dir2 is None else dir2
+    pattern1 = _default_image_patterns() if pattern1 is None else pattern1
+    pattern2 = _default_image_patterns() if pattern2 is None else pattern2
     return get_paths_lists(dir1, pattern1, pattern2) if dir1 == dir2 else (
         _glob_paths(dir1, pattern1),
         _glob_paths(dir2, pattern2),
@@ -102,7 +113,6 @@ def get_all_image_paths(path, ext=None):
 
     If ext is None, scans every extension readers.py supports instead of one fixed type.
     """
-    from microscopy_colocalization.readers import SUPPORTED_EXTENSIONS
     extensions = [ext] if ext else SUPPORTED_EXTENSIONS
 
     paths = []

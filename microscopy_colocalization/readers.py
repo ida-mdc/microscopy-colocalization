@@ -10,6 +10,7 @@ lazy/dask loading and no metadata extraction beyond the dim order.
 """
 import logging
 import re
+import string
 from pathlib import Path
 
 import h5py
@@ -92,14 +93,6 @@ def select_channel(array, dim_order, channel_index):
         raise ValueError(f'Image has a channel axis (dim order {dim_order}) but no '
                           f'channel_index was given.')
     return np.take(array, channel_index, axis=c_axis)
-
-
-def count_channels(path):
-    """Number of channels in the image at path, or 1 if it has no channel axis."""
-    array, dim_order = read_array(path)
-    if 'C' not in dim_order:
-        return 1
-    return array.shape[dim_order.index('C')]
 
 
 # ---------------------------------------------------------------------------
@@ -219,7 +212,6 @@ def _default_dim_order(ndim):
     """Assume trailing YX, preceding axes get generic letters."""
     if ndim <= 2:
         return 'YX'[-ndim:] if ndim else ''
-    import string
     return string.ascii_uppercase[:ndim - 2] + 'YX'
 
 

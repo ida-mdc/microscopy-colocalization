@@ -2,7 +2,7 @@
 
 Colocalization analysis for microscopy images and spot-detection CSVs (e.g. RS-FISH).  
 
-Run `mcoloc`with three subcommands:
+Run `mcoloc` with three subcommands:
 
 - `c2c` (channel-to-channel): Manders' overlap coefficients between two channels of the same
   multi-channel image, or across all channel pairs with `--all-channel-pairs`.

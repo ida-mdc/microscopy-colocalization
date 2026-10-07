@@ -37,6 +37,8 @@ def read_spots(csv_path):
 
 
 def run(args):
+    io_utils.reject_empty_patterns(args._parser, pattern1=args.pattern1, pattern2=args.pattern2)
+
     result_dir = io_utils.create_result_dir(args.path, prefix='p2p')
     io_utils.set_logger(result_dir)
     io_utils.save_args_to_file(args, result_dir)

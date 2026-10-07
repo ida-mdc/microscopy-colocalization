@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "microscopy_colocalization"
 version = "0.1.0"
-description = "Colocalization analysis for microscopy images and spot-detection CSVs (channel-channel, point-point, channel-point)"
+description = "Colocalization analysis for microscopy images and spot-detection CSVs (channel-channel, point-point, point-channel)"
 authors = [{ name = "Ella Bahry" }]
 license = "MIT"
 requires-python = ">=3.9"

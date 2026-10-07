@@ -2,6 +2,8 @@
 
 Unifies the previously-duplicated (and identical) otsu/li/triangle/yen threshold-value logic
 from ida_tools.image_operations.get_threshold and fish_colocalization's inline version.
+get_distance_map's "mask dominance" warning condition is inverted from the original (bug fix:
+the original warned when background dominated, backwards from its own stated intent).
 """
 import logging
 
@@ -24,11 +26,6 @@ def get_threshold(image, method='otsu'):
     if method not in _METHODS:
         raise ValueError(f"Threshold method must be one of: {list(_METHODS)}")
     return _METHODS[method](image.flatten())
-
-
-def make_binary_mask(image, thr):
-    """Foreground mask: True where image intensity is above the threshold."""
-    return image > thr
 
 
 def get_distance_map(image, thr):

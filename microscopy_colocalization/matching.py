@@ -1,6 +1,7 @@
-"""Point-matching primitives shared by p2p and p2c, unchanged from fish_colocalization."""
-import copy
-
+"""Point-matching primitives shared by p2p and p2c, from fish_colocalization. compare_spot_sets
+drops an unnecessary deepcopy (see inline comment); get_spots_distances fixes a
+bilinear-interpolation bug (see inline comment).
+"""
 import numpy as np
 from scipy import spatial
 
@@ -23,8 +24,9 @@ def compare_spot_sets(set1, set2, min_dist):
         min_index_set1 = -1
         min_index_set2 = -1
         counter = 0
-        kd_copy = copy.deepcopy(set2)
-        kdtree = spatial.KDTree(kd_copy)
+        # KDTree only reads its input; set2 is already a fresh array after np.delete, so no
+        # copy is needed here (the original deepcopy was pure overhead).
+        kdtree = spatial.KDTree(set2)
 
         for item in set1:
             distance, index = kdtree.query(item)
