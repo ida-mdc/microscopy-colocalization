@@ -49,25 +49,30 @@ def read_array(path):
     return _prefer_sample_axis_as_channel(array, dim_order)
 
 
+_AMBIGUOUS_AXIS_LETTERS = ('S', 'Q')
+
+
 def _prefer_sample_axis_as_channel(array, dim_order):
-    """Both tifffile and bioio report an ambiguous/color-sample axis as 'S' (samples)
-    rather than 'C' when there's no real per-biological-channel axis (e.g. plain tiff
-    planes with no OME/ImageJ metadata, or RGB png/jpg). Treat 'S' as the channel axis
-    whenever there's no meaningfully-sized 'C' axis to prefer instead.
+    """tifffile and bioio report an ambiguous extra axis as 'S' (samples, e.g. RGB png/jpg)
+    or 'Q' (tifffile's "unknown axis", e.g. a plain minisblack multi-page tiff with no
+    OME/ImageJ metadata) rather than 'C', when there's no real per-biological-channel axis.
+    Treat whichever of those is present as the channel axis, unless a meaningfully-sized
+    real 'C' axis already exists.
     """
-    if 'S' not in dim_order or array.shape[dim_order.index('S')] <= 1:
+    ambiguous = next((letter for letter in _AMBIGUOUS_AXIS_LETTERS if letter in dim_order), None)
+    if ambiguous is None or array.shape[dim_order.index(ambiguous)] <= 1:
         return array, dim_order
 
     if 'C' in dim_order and array.shape[dim_order.index('C')] > 1:
-        return array, dim_order  # a real multi-channel axis already exists; leave S alone
+        return array, dim_order  # a real multi-channel axis already exists; leave it alone
 
     if 'C' in dim_order:
         c_axis = dim_order.index('C')
         array = np.take(array, 0, axis=c_axis)
         dim_order = dim_order[:c_axis] + dim_order[c_axis + 1:]
 
-    s_axis = dim_order.index('S')
-    dim_order = dim_order[:s_axis] + 'C' + dim_order[s_axis + 1:]
+    axis = dim_order.index(ambiguous)
+    dim_order = dim_order[:axis] + 'C' + dim_order[axis + 1:]
     return array, dim_order
 
 

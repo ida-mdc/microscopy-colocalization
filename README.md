@@ -4,10 +4,11 @@ Colocalization analysis for microscopy images and spot-detection CSVs (e.g. RS-F
 
 Run `mcoloc` with three subcommands:
 
-- `c2c` (channel-to-channel): Manders' overlap coefficients between two channels of the same
-  multi-channel image, or across all channel pairs with `--all-channel-pairs`.
-- `p2p` (point-to-point): matches spot coordinates between two CSVs (e.g. RS-FISH output) by
-  nearest-neighbor distance.
+- `c2c` (channel-to-channel): Manders' overlap coefficients between two or more channels of
+  the same multi-channel image; with more than two channels, every unique pair is compared.
+- `p2p` (point-to-point): matches spot coordinates between two or more CSVs (e.g. RS-FISH
+  output per channel) by nearest-neighbor distance; with more than two, every unique pair is
+  compared.
 - `p2c` (point-to-channel): distance of each spot in a CSV to the nearest thresholded object
   in an image.
 
@@ -36,8 +37,8 @@ uv pip install .
 ## Usage
 
 ```
-mcoloc c2c -p /path/to/images -ext tif -c1i 0 -c2i 1
-mcoloc p2p -p /path/to/csvs -p1 '*.csv' -p2 'C1-*.csv'
+mcoloc c2c -p /path/to/images -ext tif -c 0 -c 1
+mcoloc p2p -p /path/to/csvs --pattern 'C1-*.csv' --pattern 'C2-*.csv'
 mcoloc p2c -p /path/to/data -p1 '*.csv' -p2 '*.tif'
 ```
 
@@ -50,27 +51,25 @@ defaults and which arguments are required for each command.
 |---|---|
 | `-p`, `--path` (required) | Root folder of images, laid out as `condition/file` or `condition/run/file`. |
 | `-ext`, `--extension` | Image file extension to look for, e.g. `tif`, `czi`, `ims` (no dot). If omitted, scans for every supported format. |
-| `-c1i`, `--channel1` | Index of the first channel to compare (0 is the first channel). Required unless `--all-channel-pairs` is set. |
-| `-c2i`, `--channel2` | Index of the second channel to compare. Required unless `--all-channel-pairs` is set. |
-| `--all-channel-pairs` | Run every unique pair of channels found in each image instead of one fixed pair. Cannot be combined with `--channel1`/`--channel2`. |
-| `-c1c`, `--color1` | Display color for channel 1 in the output plot. Default: `green`. |
-| `-c2c`, `--color2` | Display color for channel 2 in the output plot. Default: `yellow`. |
+| `-c`, `--channels` (required, give 2+) | Index of a channel to compare, repeat the flag for each one, e.g. `-c 0 -c 1`. With more than 2, every unique pair is compared. |
+| `--colormap` | Matplotlib colormap name; each channel index gets one color from it, used consistently in every plot. Default: a small built-in palette of microscopy-overlay-style colors. |
 | `-tm`, `--threshold_method` | `otsu`, `li`, `triangle`, or `yen`. Default: `otsu`. |
 
-Output: `stats.csv` (thresholds and M1/M2 per image), `manders_boxplot.png`, and per-image
-thresholded/overlap mask tif files.
+Output: `stats.csv` (one row per image per channel pair: thresholds and M1/M2), one
+`manders_boxplot_c<i>_c<j>.png` per channel pair, and per-image-per-pair thresholded/overlap
+mask tif files.
 
 ### `p2p`: point-to-point
 
 | Flag | Meaning |
 |---|---|
 | `-p`, `--path` (required) | Folder containing the CSV files (also searched one level deep). |
-| `-p1`, `--pattern1` (required) | Filename wildcard for the first group of CSVs, e.g. `'C1-*.csv'`. |
-| `-p2`, `--pattern2` (required) | Filename wildcard for the second group of CSVs, e.g. `'C2-*.csv'`. |
-| `-d`, `--min_dist` | Maximum distance (pixels) between two points for them to count as a match. Default: `2`. |
+| `--pattern` (required, give 2+) | Filename wildcard for one group of CSVs, repeat the flag for each one, e.g. `--pattern 'C1-*.csv' --pattern 'C2-*.csv'`. With more than 2, every unique pair is compared. |
+| `-d`, `--max_dist` | Maximum distance (pixels) between two points for them to count as a match. Default: `2`. |
 
-Output: `summary.csv` (point counts, match count, mean distance per image pair) and one
-`<index>.csv` per image pair listing the matched points and their distances.
+Output: `summary.csv` (one row per image per pattern pair: point counts, match count, mean
+distance) and one `<tag1><tag2><index>.csv` per image per pair (e.g. `C1-C2-0.csv`) listing
+the matched points and their distances.
 
 ### `p2c`: point-to-channel
 
@@ -83,6 +82,13 @@ Output: `summary.csv` (point counts, match count, mean distance per image pair) 
 | `-tm`, `--threshold_method` | `otsu`, `li`, `triangle`, or `yen`. Default: `otsu`. |
 
 Output: `distances.csv`, the distance of every point to its nearest thresholded object.
+
+## Testing
+
+```
+uv pip install -e ".[test]"
+pytest
+```
 
 ## License
 

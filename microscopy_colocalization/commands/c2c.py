@@ -1,7 +1,8 @@
 """c2c: channel-to-channel colocalization (Manders' overlap coefficients), from
 channel_colocalization/colocalization.py, migrated onto the shared multi-format reader.
-The only logic change from the original is using args.channel2 instead of a hardcoded
-channel index, which silently ignored the --channel2/-c2i flag.
+Logic changes from the original: args.channels replaces the hardcoded channel-2 index (which
+silently ignored the --channel2/-c2i flag) and the separate --all-channel-pairs flag (2
+channels given -> one pair, same as before; 3+ -> every pair, automatically).
 """
 import logging
 import os
@@ -11,14 +12,15 @@ import pandas as pd
 import tifffile as tif
 
 from microscopy_colocalization import io_utils, readers
+from microscopy_colocalization.colors import channel_color
 from microscopy_colocalization.plotting import plot_and_save_manders
 from microscopy_colocalization.threshold import THRESHOLD_METHODS, get_threshold
 
 
 def add_arguments(parser):
     parser.description = (
-        "Channel-to-channel colocalization: threshold two channels of the same multi-channel "
-        "image and report Manders' M1/M2 overlap coefficients."
+        "Channel-to-channel colocalization: threshold two or more channels of the same "
+        "multi-channel image and report Manders' M1/M2 overlap coefficients for every pair."
     )
     parser.add_argument('-p', '--path', required=True,
                          help='Root folder of images, laid out as condition/file or '
@@ -27,22 +29,17 @@ def add_arguments(parser):
                          help='Image file extension to look for, e.g. tif, czi, ims (no dot). '
                               'If omitted, scans for every supported format '
                               f'({", ".join(readers.SUPPORTED_EXTENSIONS)}).')
-    parser.add_argument('-c1i', '--channel1', type=int,
-                         help='Index of the first channel to compare, 0 means the first '
-                              'channel in the file. Required unless --all-channel-pairs is set.')
-    parser.add_argument('-c2i', '--channel2', type=int,
-                         help='Index of the second channel to compare. Required unless '
-                              '--all-channel-pairs is set.')
-    parser.add_argument('-c1c', '--color1', default='green',
-                         help='Display color for channel 1 in the output plot (default: green).')
-    parser.add_argument('-c2c', '--color2', default='yellow',
-                         help='Display color for channel 2 in the output plot (default: yellow).')
+    parser.add_argument('-c', '--channels', action='append', type=int,
+                         help='Index of a channel to compare, 0 means the first channel in '
+                              'the file. Give at least twice, e.g. -c 0 -c 1. With more than '
+                              'two, every unique pair is compared.')
+    parser.add_argument('--colormap', default=None,
+                         help='Matplotlib colormap name; each channel index gets one color '
+                              'from it, consistent across every plot. Default is a small '
+                              'built-in palette of microscopy-overlay-style colors.')
     parser.add_argument('-tm', '--threshold_method', default='otsu', choices=THRESHOLD_METHODS,
                          help='Method used to separate signal from background in each channel '
                               '(default: otsu).')
-    parser.add_argument('--all-channel-pairs', action='store_true',
-                         help='Run every unique pair of channels found in each image instead of '
-                              'a single fixed pair. Cannot be combined with --channel1/--channel2.')
     parser.set_defaults(func=run, _parser=parser)
 
 
@@ -80,16 +77,8 @@ def manders_coefficients(image1, image2, thr1, thr2, result_dir, filename):
     return m1, m2
 
 
-def _validate_args(args):
-    if args.all_channel_pairs:
-        if args.channel1 is not None or args.channel2 is not None:
-            args._parser.error('--channel1/--channel2 cannot be combined with --all-channel-pairs.')
-    elif args.channel1 is None or args.channel2 is None:
-        args._parser.error('--channel1 and --channel2 are both required unless --all-channel-pairs is set.')
-
-
 def run(args):
-    _validate_args(args)
+    io_utils.require_min_items(args._parser, 'channels', args.channels)
 
     result_dir = io_utils.create_result_dir(args.path, prefix='c2c')
     io_utils.set_logger(result_dir)
@@ -97,17 +86,12 @@ def run(args):
 
     paths = io_utils.get_all_image_paths(args.path, args.extension)
     df = io_utils.paths_to_df(paths)
+    pairs = io_utils.all_pairs(args.channels)
 
     rows = []
     for i in df.index:
         image_path = os.path.join(args.path, df.at[i, 'path'])
         array, dim_order = readers.read_array(image_path)
-
-        if args.all_channel_pairs:
-            n_channels = array.shape[dim_order.index('C')] if 'C' in dim_order else 1
-            pairs = io_utils.channel_pairs(n_channels)
-        else:
-            pairs = [(args.channel1, args.channel2)]
 
         for c1, c2 in pairs:
             logging.info('Processing %s, channel pair (%d, %d)', df.at[i, 'path'], c1, c2)
@@ -136,4 +120,8 @@ def run(args):
 
     stats = pd.DataFrame(rows)
     stats.to_csv(os.path.join(result_dir, 'stats.csv'))
-    plot_and_save_manders(stats, result_dir, args.color1, args.color2)
+
+    for (c1, c2), pair_stats in stats.groupby(['channel1', 'channel2']):
+        plot_and_save_manders(pair_stats, result_dir,
+                               channel_color(c1, args.colormap), channel_color(c2, args.colormap),
+                               pair_tag=f'c{c1}_c{c2}')

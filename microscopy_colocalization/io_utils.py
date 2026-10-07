@@ -8,6 +8,7 @@ dir/pattern/channel source discovery covering every input layout the old repos s
 import itertools
 import logging
 import os
+import re
 from datetime import datetime
 from glob import glob
 
@@ -42,13 +43,24 @@ def set_logger(result_path):
 
 
 def reject_empty_patterns(parser, **patterns):
-    """Error out on an explicit empty-string pattern (e.g. -p1 ''), which argparse's
-    required=True does not catch and which would otherwise silently default to scanning
-    every supported image extension instead of matching nothing, as the user likely intended.
+    """Error out on an explicit empty-string pattern (e.g. -p1 '' or --pattern ''), which
+    argparse's required=True does not catch and which would otherwise silently default to
+    scanning every supported image extension instead of matching nothing, as the user likely
+    intended. Each kwarg value may be a single string or a list of strings.
     """
     for name, value in patterns.items():
-        if value == '':
+        values = value if isinstance(value, list) else [value]
+        if any(v == '' for v in values):
             parser.error(f"--{name} cannot be an empty string.")
+
+
+def require_min_items(parser, name, items, minimum=2):
+    """Error out unless an action='append' list argument got at least `minimum` values."""
+    if items is None or len(items) < minimum:
+        parser.error(f'--{name} requires at least {minimum} values (give it multiple times, '
+                     f'e.g. --{name} a --{name} b).')
+    if len(set(items)) != len(items):
+        parser.error(f'--{name} values must be unique.')
 
 
 def save_args_to_file(args, result_path, filename='arguments.txt'):
@@ -139,6 +151,29 @@ def paths_to_df(paths):
     return pd.DataFrame(data, columns=['path', 'condition', 'run', 'filename'])
 
 
-def channel_pairs(n_channels):
-    """All unique (i, j) channel-index pairs, i < j, for --all-channel-pairs."""
-    return list(itertools.combinations(range(n_channels), 2))
+def all_pairs(items):
+    """All unique (a, b) pairs from items, a before b in the input order."""
+    return list(itertools.combinations(items, 2))
+
+
+def pattern_tag(pattern):
+    """Turn a glob wildcard into a filesystem-safe label, e.g. 'C1-*.csv' -> 'C1-'."""
+    stem = re.sub(r'[*?\[\]]', '', pattern)
+    return os.path.splitext(stem)[0]
+
+
+def resolve_multi_patterns(path, patterns):
+    """Glob N patterns under `path` (top level and one level deep), requiring every pattern
+    to match the same number of files (one list per pattern, index-aligned across patterns).
+    """
+    path_lists = [_glob_paths(path, p) for p in patterns]
+
+    lengths = {len(paths) for paths in path_lists}
+    if len(lengths) > 1:
+        counts = ', '.join(f"'{p}': {len(paths)}" for p, paths in zip(patterns, path_lists))
+        raise ValueError(f'All patterns must match the same number of files. Got {counts}.')
+
+    for pattern, paths in zip(patterns, path_lists):
+        logging.info("Pattern '%s' matched %d file(s).", pattern, len(paths))
+
+    return path_lists

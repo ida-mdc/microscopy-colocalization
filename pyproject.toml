@@ -27,8 +27,14 @@ dependencies = [
     "bioio-lif",
 ]
 
+[project.optional-dependencies]
+test = ["pytest>=7.0.0"]
+
 [project.scripts]
 mcoloc = "microscopy_colocalization.__main__:main"
 
 [tool.setuptools.packages.find]
 include = ["microscopy_colocalization*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
