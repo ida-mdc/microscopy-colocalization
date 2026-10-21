@@ -68,8 +68,9 @@ mask tif files.
 | `-d`, `--max_dist` | Maximum distance (pixels) between two points for them to count as a match. Default: `2`. |
 
 Output: `summary.csv` (one row per image per pattern pair: point counts, match count, mean
-distance) and one `<tag1><tag2><index>.csv` per image per pair (e.g. `C1-C2-0.csv`) listing
-the matched points and their distances.
+distance) and one `<tag1><tag2>__<index>.csv` per image per pair (e.g. `C1-C2-__0.csv`) listing
+the matched points and their distances. The `output_file` column in `summary.csv` links each
+row to its file.
 
 ### `p2c`: point-to-channel
 

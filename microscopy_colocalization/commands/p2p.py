@@ -69,7 +69,9 @@ def run(args):
             match_spots1, match_spots2, distances, mean_euc_dist = compare_spot_sets(
                 spots1, spots2, args.max_dist)
 
+            output_file = f'{tag}__{ip}.csv'
             summary_rows.append({
+                'output_file': output_file,
                 'pattern1': pattern_i,
                 'pattern2': pattern_j,
                 'image_name': os.path.basename(p),
@@ -86,8 +88,8 @@ def run(args):
                 'match_point_1': match_spots1,
                 'match_point_2': match_spots2,
                 'distance': distances,
-            }).to_csv(os.path.join(result_dir, f'{tag}{ip}.csv'))
+            }).to_csv(os.path.join(result_dir, output_file))
 
-    pd.DataFrame(summary_rows, columns=['pattern1', 'pattern2', 'image_name', 'n_points_1',
+    pd.DataFrame(summary_rows, columns=['output_file', 'pattern1', 'pattern2', 'image_name', 'n_points_1',
                                         'n_points_2', 'n_matches', 'mean_euc_dist']
                 ).to_csv(os.path.join(result_dir, 'summary.csv'))

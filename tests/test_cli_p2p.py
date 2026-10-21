@@ -39,7 +39,7 @@ def test_p2p_produces_one_summary_row_and_one_file_per_pair(tmp_path, groups):
     assert actual_pairs == expected_pairs
 
     for g1, g2 in expected_pairs:
-        assert (result_dir / f'{g1}-{g2}-0.csv').exists()
+        assert (result_dir / f'{g1}-{g2}-__0.csv').exists()
 
 
 def test_p2p_c1_c2_match_count_and_mean_distance(tmp_path):
