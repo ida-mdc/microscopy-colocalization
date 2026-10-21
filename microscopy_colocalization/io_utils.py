@@ -158,7 +158,7 @@ def all_pairs(items):
 
 def pattern_tag(pattern):
     """Turn a glob wildcard into a filesystem-safe label, e.g. 'C1-*.csv' -> 'C1-'."""
-    stem = re.sub(r'[*?\[\]]', '', pattern)
+    stem = re.sub(r'[*?\[\]/\\]', '', pattern)
     return os.path.splitext(stem)[0]
 
 

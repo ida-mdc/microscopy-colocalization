@@ -17,6 +17,7 @@ class _FakeParser:
     ('*.tif', '.tif'),
     ('img_?.png', 'img_'),
     ('C[12]-*.csv', 'C12-'),
+    ('C1/C1*', 'C1C1'),
 ])
 def test_pattern_tag(pattern, expected_tag):
     assert io_utils.pattern_tag(pattern) == expected_tag
