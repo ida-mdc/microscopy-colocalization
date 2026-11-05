@@ -38,6 +38,6 @@ def write_multichannel_tif(path, n_channels=3, size=64, seed=0):
     return img
 
 
-def write_points_csv(path, points):
-    """points: list of (y, x) tuples."""
-    pd.DataFrame(points, columns=['y', 'x']).to_csv(path, index=False)
+def write_points_csv(path, points, sep=',', decimal='.'):
+    """points: list of (y, x) tuples. Use sep=';', decimal=',' for German-locale (Excel) CSVs."""
+    pd.DataFrame(points, columns=['y', 'x']).to_csv(path, index=False, sep=sep, decimal=decimal)

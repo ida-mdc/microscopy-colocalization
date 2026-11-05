@@ -31,7 +31,11 @@ def add_arguments(parser):
 
 def read_spots(csv_path):
     try:
-        df = pd.read_csv(csv_path)
+        # Accept both English (',' separator, '.' decimal) and German/Excel (';' / ',') CSVs.
+        with open(csv_path, encoding='utf-8-sig') as f:
+            semicolon = ';' in f.readline()
+        df = pd.read_csv(csv_path, sep=';' if semicolon else ',',
+                         decimal=',' if semicolon else '.', encoding='utf-8-sig')
     except (FileNotFoundError, IndexError):
         logging.warning('Skipping %s: csv is missing.', csv_path)
         return None

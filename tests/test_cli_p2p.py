@@ -52,6 +52,17 @@ def test_p2p_c1_c2_match_count_and_mean_distance(tmp_path):
     assert row['mean_euc_dist'] == pytest.approx(0.7071, abs=1e-3)
 
 
+@pytest.mark.parametrize('sep, decimal', [(',', '.'), (';', ',')], ids=['english', 'german'])
+def test_p2p_reads_csv_regardless_of_locale_format(tmp_path, sep, decimal):
+    for group in ['C1', 'C2']:
+        write_points_csv(tmp_path / f'{group}-img1.csv', _POINTS[group], sep=sep, decimal=decimal)
+    run_cli(p2p, ['-p', str(tmp_path), '--pattern', 'C1-*.csv', '--pattern', 'C2-*.csv', '-d', '2'])
+
+    row = pd.read_csv(find_result_dir(tmp_path, 'p2p') / 'summary.csv').iloc[0]
+    assert row['n_matches'] == 2
+    assert row['mean_euc_dist'] == pytest.approx(0.7071, abs=1e-3)
+
+
 @pytest.mark.parametrize('argv_extra', [
     ['--pattern', 'C1-*.csv'],  # only one pattern
     ['--pattern', 'C1-*.csv', '--pattern', 'C1-*.csv'],  # duplicate
